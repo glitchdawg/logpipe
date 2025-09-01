@@ -4,20 +4,21 @@ import (
 	"context"
 	"encoding/json"
 	"sync"
+	"sync/atomic"
 )
-
-func Parser(ctx context.Context, wg *sync.WaitGroup, in <- chan string, out chan <- UserLog, mu *sync.Mutex, report *Report){
+func Parser(ctx context.Context, wg *sync.WaitGroup, in <-chan string, out chan<- UserLog, mu *sync.Mutex, report *Report, progressCounter *atomic.Int64) {
 	defer wg.Done()
-	for{
-		select{
+	for {
+		select {
 		case <-ctx.Done():
 			return
-		case l,ok:=<-in:
-			if !ok{
+		case l, ok := <-in:
+			if !ok {
 				return
 			}
+			progressCounter.Add(1)
 			var log UserLog
-			if err:=json.Unmarshal([]byte(l),&log);err!=nil{
+			if err := json.Unmarshal([]byte(l), &log); err != nil {
 				mu.Lock()
 				report.Malformed++
 				mu.Unlock()
