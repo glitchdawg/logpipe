@@ -43,3 +43,6 @@ Logs per Level
 Top 10 Users by Log Count:
  
 ```
+
+## IMPLEMENTATION
+![flowchart](flowchart.svg)
