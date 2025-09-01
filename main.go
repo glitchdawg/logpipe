@@ -12,7 +12,7 @@ func main() {
 	var wg sync.WaitGroup
 	var mu sync.Mutex
 	readCh := make(chan string, 10)
-	parseCh :=make(chan UserLog, 10)
+	parseCh := make(chan UserLog, 10)
 	report := Report{
 		Levels: make(map[string]int),
 		Users:  make(map[string]int),
@@ -22,15 +22,14 @@ func main() {
 	go FileReader(ctx, &wg, "test.log", readCh)
 	wg.Add(1)
 	go Parser(ctx, &wg, readCh, parseCh, &mu, &report)
-	go func() {
-		for log := range parseCh {
-			fmt.Println("log:", log)
-		}
-	}()
+	wg.Add(1)
+	go Aggregate(ctx, &wg, parseCh, &mu, &report)
 	time.Sleep(2 * time.Second)
 	cancel()
 	wg.Wait()
 	close(parseCh)
 	fmt.Println("Processed:", report.Processed)
 	fmt.Println("Malformed:", report.Malformed)
+	fmt.Println("Logs per level:", report.Levels)
+	fmt.Println("Logs per user:", report.Users)
 }
